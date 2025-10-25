@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "minVersion": "0.8.7",
+  "package": "de.crazypokemondev.knowmyname.mixin",
+  "plugin": "de.crazypokemondev.knowmyname.mixin.KnowMyNameMod",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_21",
+  "server": [
+    "BlockEntityMixin"
+  ]
+}

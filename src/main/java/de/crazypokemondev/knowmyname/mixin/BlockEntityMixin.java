@@ -22,22 +22,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.example.mixin.core;
+package de.crazypokemondev.knowmyname.mixin;
 
-import java.util.logging.Logger;
-import org.bukkit.craftbukkit.CraftServer;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.Nameable;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(value = CraftServer.class)
-public abstract class MixinCraftServer {
-  @Shadow public abstract Logger getLogger();
+@Mixin(BlockEntity.class)
+public class BlockEntityMixin {
+  @Inject(at = @At("HEAD"), method = "getUpdatePacket()Lnet/minecraft/network/protocol/Packet;", cancellable = true)
+  public void toUpdatePacket(CallbackInfoReturnable<Packet<ClientGamePacketListener>> callback) {
+    var self = (BlockEntity) (Object) (this);
+    if (self instanceof Nameable nameable && nameable.hasCustomName()) {
+      callback.setReturnValue(ClientboundBlockEntityDataPacket.create(self));
+    }
+  }
 
-  @Inject(method = "<init>", at = @At("RETURN"))
-  private void onConstruction(CallbackInfo callback) {
-    this.getLogger().info("Hello World!");
+  @Inject(at = @At("HEAD"), method = "getUpdateTag", cancellable = true)
+  public void toInitialChunkDataNbt(HolderLookup.Provider provider, CallbackInfoReturnable<CompoundTag> callback) {
+    var self = (BlockEntity) (Object) (this);
+    KnowMyNameMod.updateNBT(self, provider).ifPresent(callback::setReturnValue);
   }
 }

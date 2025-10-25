@@ -22,17 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.example.mixin.plugins;
+package de.crazypokemondev.knowmyname.mixin;
 
-import java.util.List;
-import java.util.Set;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.Nameable;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-public final class CorePlugin implements IMixinConfigPlugin {
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+public final class KnowMyNameMod implements IMixinConfigPlugin {
   @Override
   public void onLoad(final @NotNull String mixinPackage) {
   }
@@ -62,5 +68,15 @@ public final class CorePlugin implements IMixinConfigPlugin {
 
   @Override
   public void postApply(final @NotNull String targetClassName, final @NotNull ClassNode targetClass, final @NotNull String mixinClassName, final @NotNull IMixinInfo mixinInfo) {
+  }
+
+  public static Optional<CompoundTag> updateNBT(BlockEntity tile, HolderLookup.Provider provider) {
+    if (tile instanceof Nameable nameable && nameable.hasCustomName()) {
+      CompoundTag nbt = tile.saveWithoutMetadata(provider);
+
+      nbt.remove("Items");
+      if (nameable.hasCustomName()) return Optional.of(nbt);
+    }
+    return Optional.empty();
   }
 }
